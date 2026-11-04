@@ -1,0 +1,22 @@
+name: AstraDemo
+options:
+  bundleIdPrefix: dev.astratest
+  deploymentTarget: { iOS: "16.0", macOS: "13.0" }
+packages:
+  AstraTest: { path: .. }
+targets:
+  AstraDemo:
+    type: application
+    supportedDestinations: [iOS, macOS]
+    sources: [Sources]
+    dependencies: [{ package: AstraTest }]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.astratest.demo
+        MARKETING_VERSION: "1.4.0"
+        CURRENT_PROJECT_VERSION: "214"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Sable
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGNING_ALLOWED: NO

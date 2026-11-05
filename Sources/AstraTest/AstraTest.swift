@@ -10,6 +10,8 @@ import Foundation
 /// Testers press the Report button (or shake the device, or ⇧⌥R on the Mac), point at what's wrong and say it
 /// in their own words. The SDK attaches a screenshot, recent network requests, log lines and device details.
 public enum AstraTest {
+    /// This SDK's version.
+    public static let version = "0.1.0"
     public struct Options {
         /// Your app's version. Defaults to `CFBundleShortVersionString`.
         public var appVersion: String?

@@ -53,7 +53,22 @@ enum Sender {
 
     static func announceBuild() {
         guard let key = AstraTest.key, let version = Device.appVersion else { return }
-        post("/v1/builds", ["key": key, "platform": Device.platform, "version": version, "build": Device.build ?? ""]) { _ in }
+        post("/v1/builds", ["key": key, "platform": Device.platform, "version": version, "build": Device.build ?? "",
+                            "sdk": "apple", "sdkVersion": AstraTest.version]) { result in
+            guard case .success(let json) = result, let latest = json["latest"] as? [String: Any],
+                  let v = latest["version"] as? String, isOlder(AstraTest.version, than: v) else { return }
+            let urgent = (latest["urgent"] as? Bool) == true
+            print("[AstraTest] \(urgent ? "Important update" : "Update available"): AstraTest \(v) (this app has \(AstraTest.version)). \(latest["notes"] as? String ?? "") \(latest["upgrade"] as? String ?? "")")
+        }
+    }
+
+    static func isOlder(_ a: String, than b: String) -> Bool {
+        let x = a.split(separator: ".").map { Int($0) ?? 0 }, y = b.split(separator: ".").map { Int($0) ?? 0 }
+        for i in 0..<max(x.count, y.count) {
+            let p = i < x.count ? x[i] : 0, q = i < y.count ? y[i] : 0
+            if p != q { return p < q }
+        }
+        return false
     }
 
     static func payload(description: String, severity: String?, element: PickedElement?, screenshot: Data?) -> [String: Any] {

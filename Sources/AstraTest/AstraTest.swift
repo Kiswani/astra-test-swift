@@ -11,7 +11,7 @@ import Foundation
 /// in their own words. The SDK attaches a screenshot, recent network requests, log lines and device details.
 public enum AstraTest {
     /// This SDK's version.
-    public static let version = "0.2.0"
+    public static let version = "0.2.1"
 
     /// Which builds Astra Test runs in.
     public enum Builds: Sendable {

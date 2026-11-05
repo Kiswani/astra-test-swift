@@ -11,7 +11,35 @@ final class AstraTestTests: XCTestCase {
     func testRejectsBadKeys() {
         AstraTest.start(key: "nope")
         XCTAssertFalse(AstraTest.started)
+        XCTAssertFalse(AstraTest.isRunning)
+        XCTAssertTrue(AstraTest.status.contains("isn't a project key"))
     }
+
+    func testExcludedHostsAreLeftAlone() {
+        let saved = AstraTest.options
+        defer { AstraTest.options = saved }
+        AstraTest.options = .init(excludeHosts: ["googleapis.com"])
+        XCTAssertFalse(NetworkCapture.canInit(with: URLRequest(url: URL(string: "https://gmail.googleapis.com/gmail/v1/users/me")!)))
+        XCTAssertFalse(NetworkCapture.canInit(with: URLRequest(url: URL(string: "https://googleapis.com/x")!)))
+        XCTAssertTrue(NetworkCapture.canInit(with: URLRequest(url: URL(string: "https://api.example.com/cart")!)))
+        XCTAssertTrue(NetworkCapture.canInit(with: URLRequest(url: URL(string: "https://notgoogleapis.com/")!)))
+    }
+
+    func testTestBuildHintDecides() {
+        let off = expectation(description: "off"), on = expectation(description: "on")
+        TestBuild.detect(hint: false) { t, _ in XCTAssertFalse(t); off.fulfill() }
+        TestBuild.detect(hint: true) { t, _ in XCTAssertTrue(t); on.fulfill() }
+        wait(for: [off, on], timeout: 5)
+    }
+
+    #if os(macOS)
+    /// A copy that wasn't installed from the App Store or TestFlight counts as a test build.
+    func testMacBuildWithoutReceiptIsATestBuild() {
+        let done = expectation(description: "detected")
+        TestBuild.detect(hint: nil) { t, why in XCTAssertTrue(t, why); done.fulfill() }
+        wait(for: [done], timeout: 10)
+    }
+    #endif
 
     func testNetworkRecordDropsQuery() {
         var r = URLRequest(url: URL(string: "https://api.example.com/v1/cart?token=secret#x")!)

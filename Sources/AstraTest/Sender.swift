@@ -58,6 +58,10 @@ enum Sender {
             guard case .success(let json) = result, let latest = json["latest"] as? [String: Any],
                   let v = latest["version"] as? String, isOlder(AstraTest.version, than: v) else { return }
             let urgent = (latest["urgent"] as? Bool) == true
+            DispatchQueue.main.async {
+                AstraTest.updateAvailable = "\(v)\(urgent ? " (important)" : "") · \(latest["notes"] as? String ?? "")"
+                NotificationCenter.default.post(name: AstraTest.statusDidChange, object: nil)
+            }
             print("[AstraTest] \(urgent ? "Important update" : "Update available"): AstraTest \(v) (this app has \(AstraTest.version)). \(latest["notes"] as? String ?? "") \(latest["upgrade"] as? String ?? "")")
         }
     }

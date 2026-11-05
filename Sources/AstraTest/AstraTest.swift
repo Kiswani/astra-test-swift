@@ -11,7 +11,7 @@ import Foundation
 /// in their own words. The SDK attaches a screenshot, recent network requests, log lines and device details.
 public enum AstraTest {
     /// This SDK's version.
-    public static let version = "0.2.1"
+    public static let version = "0.2.2"
 
     /// Which builds Astra Test runs in.
     public enum Builds: Sendable {
@@ -25,7 +25,9 @@ public enum AstraTest {
     public private(set) static var isRunning = false
     /// Why it is or isn't running, e.g. "Running (TestFlight build)." Also printed to the console when `start` decides.
     public private(set) static var status = "Not started. Call AstraTest.start(key:)."
-    /// Posted when `isRunning` or `status` changes.
+    /// Set when Astra Test has a newer SDK than this one, e.g. "0.2.2 · Shake no longer crashes…". Shown by `AstraTestStatus`.
+    public internal(set) static var updateAvailable: String?
+    /// Posted when `isRunning`, `status` or `updateAvailable` changes.
     public static let statusDidChange = Notification.Name("AstraTestStatusDidChange")
     public struct Options {
         /// Your app's version. Defaults to `CFBundleShortVersionString`.

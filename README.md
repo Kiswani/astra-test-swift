@@ -34,11 +34,13 @@ struct MyApp: App {
 
 Use this rather than your own check. `AppTransaction.environment` alone doesn't always say sandbox on TestFlight iPhone builds.
 
-`start` prints one line saying what it decided: `[AstraTest] Running (TestFlight build).` or `[AstraTest] Not running: App Store build…`. In code: `AstraTest.isRunning`, `AstraTest.status`, and the `AstraTest.statusDidChange` notification. Show it to testers, for example in Settings › About:
+`start` prints one line saying what it decided: `[AstraTest] Running (TestFlight build).` or `[AstraTest] Not running: App Store build…`. In code: `AstraTest.isRunning`, `AstraTest.status`, `AstraTest.updateAvailable` (set when a newer SDK is out) and the `AstraTest.statusDidChange` notification. Show it to testers, for example in Settings › About:
 
 ```swift
 Section("About") { AstraTestStatus() }
 ```
+
+It also shows "Update available" when Astra Test has a newer SDK than the app's.
 
 ## A visible way to report
 

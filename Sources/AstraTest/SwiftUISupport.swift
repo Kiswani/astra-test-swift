@@ -43,6 +43,7 @@ public extension View {
 public struct AstraTestStatus: View {
     @State private var running = AstraTest.isRunning
     @State private var status = AstraTest.status
+    @State private var update = AstraTest.updateAvailable
 
     public init() {}
 
@@ -54,10 +55,14 @@ public struct AstraTestStatus: View {
                 Text(running ? "On" : "Off").foregroundColor(running ? .green : .secondary)
             }
             Text(status).font(.caption).foregroundColor(.secondary)
+            if let update {
+                Text("Update available: AstraTest \(update)").font(.caption).foregroundColor(.orange)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: AstraTest.statusDidChange).receive(on: RunLoop.main)) { _ in
             running = AstraTest.isRunning
             status = AstraTest.status
+            update = AstraTest.updateAvailable
         }
     }
 }

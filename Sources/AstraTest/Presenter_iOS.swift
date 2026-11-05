@@ -155,15 +155,29 @@ enum Presenter {
         }
     }
 
+    /// Wraps UIWindow's motionEnded so a shake opens the report, then hands the event on unchanged.
+    /// The original implementation is called with its own selector: UIResponder's default forwards
+    /// `_cmd` up the responder chain, so calling it under a swizzled name (astra_motionEnded) sends an
+    /// unknown selector to UIWindowScene and crashes.
+    private static var shakeInstalled = false
     private static func swizzleShake() {
+        guard !shakeInstalled else { return }
+        shakeInstalled = true
         let cls: AnyClass = UIWindow.self
-        let orig = #selector(UIResponder.motionEnded(_:with:))
-        let repl = #selector(UIWindow.astra_motionEnded(_:with:))
-        guard let mine = class_getInstanceMethod(cls, repl) else { return }
-        if class_addMethod(cls, orig, method_getImplementation(mine), method_getTypeEncoding(mine)) {
-            if let base = class_getInstanceMethod(UIResponder.self, orig) { class_replaceMethod(cls, repl, method_getImplementation(base), method_getTypeEncoding(base)) }
-        } else if let existing = class_getInstanceMethod(cls, orig) {
-            method_exchangeImplementations(existing, mine)
+        let sel = #selector(UIResponder.motionEnded(_:with:))
+        guard let method = class_getInstanceMethod(cls, sel) else { return }
+        typealias Fn = @convention(c) (AnyObject, Selector, Int, UIEvent?) -> Void
+        let previous = unsafeBitCast(method_getImplementation(method), to: Fn.self)
+        let block: @convention(block) (AnyObject, Int, UIEvent?) -> Void = { window, motion, event in
+            if motion == UIEvent.EventSubtype.motionShake.rawValue, !(window is OverlayWindow) {
+                AstraTest.showReport()
+            }
+            previous(window, sel, motion, event)
+        }
+        let imp = imp_implementationWithBlock(block)
+        // UIWindow usually inherits motionEnded from UIResponder: add its own. If it has one, replace it.
+        if !class_addMethod(cls, sel, imp, method_getTypeEncoding(method)) {
+            method_setImplementation(method, imp)
         }
     }
 }
@@ -173,12 +187,6 @@ final class Dismissal: NSObject, UIAdaptivePresentationControllerDelegate {
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) { Presenter.finish() }
 }
 
-extension UIWindow {
-    @objc func astra_motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
-        if motion == .motionShake && !(self is OverlayWindow) { AstraTest.showReport() }
-        astra_motionEnded(motion, with: event)
-    }
-}
 
 final class PickView: UIView {
     var onPick: ((CGPoint) -> Void)?

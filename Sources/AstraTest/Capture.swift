@@ -105,6 +105,9 @@ final class NetworkCapture: URLProtocol {
         if URLProtocol.property(forKey: handledKey, in: request) != nil { return false }
         // Don't record Astra Test's own calls.
         if let host = request.url?.host, host == AstraTest.options.host.host { return false }
+        // Hosts the app asked us to leave alone are neither recorded nor routed through us.
+        if let host = request.url?.host?.lowercased(),
+           AstraTest.options.excludeHosts.contains(where: { let h = $0.lowercased(); return host == h || host.hasSuffix("." + h) }) { return false }
         return true
     }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
